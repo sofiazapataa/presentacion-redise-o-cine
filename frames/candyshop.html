@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Candyshop — Cines Paseo Aldrey (Rediseño)</title>
+<style>
+:root{
+  --bg:#111;--sf:#1C1C1C;--sf2:#252525;--sf3:#2E2E2E;
+  --br:rgba(255,255,255,0.08);--br2:rgba(255,255,255,0.16);
+  --t1:#F2F0EC;--t2:#999;--t3:#555;
+  --nv:#0D0D0D;--rojo:#C8102E;--amarillo:#F5A623;
+}
+.light{
+  --bg:#F4F2EE;--sf:#fff;--sf2:#F0EDE8;--sf3:#E5E1DB;
+  --br:rgba(0,0,0,0.08);--br2:rgba(0,0,0,0.16);
+  --t1:#111;--t2:#666;--t3:#bbb;--nv:#1a1a1a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:system-ui,-apple-system,sans-serif;transition:background .2s;min-height:100vh}
+
+.controls{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--nv);border-bottom:1px solid var(--br);flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100}
+.ctrl-group{display:flex;gap:6px;align-items:center}
+.cbtn{background:rgba(255,255,255,0.07);border:.5px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#ccc}
+.cbtn.on{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+.vbtn{background:rgba(255,255,255,0.07);border:.5px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#ccc}
+.vbtn.active{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+
+.layout{display:flex;gap:28px;justify-content:center;padding:24px 20px;align-items:flex-start;flex-wrap:wrap}
+.mobile-frame{width:375px;background:var(--bg);border:1px solid var(--br);border-radius:22px;overflow:hidden}
+.desktop-frame{flex:1;min-width:640px;max-width:1000px;background:var(--bg);border:1px solid var(--br);border-radius:16px;overflow:hidden}
+
+/* NAV */
+.nav{background:var(--nv);padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.logo-box{width:34px;height:34px;border:2px dashed var(--rojo);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--rojo);text-align:center;line-height:1.2;flex-shrink:0}
+.logo-text{color:#fff;font-size:12px;font-weight:600}
+.logo-sub{color:#888;font-size:10px}
+.back-btn{display:flex;align-items:center;gap:5px;color:#ccc;font-size:13px;cursor:pointer;background:none;border:none;padding:0}
+
+/* STEPPER */
+.stepper{background:var(--sf);border-bottom:1px solid var(--br);padding:14px 20px}
+.stepper-row{display:flex;align-items:center;justify-content:center;gap:0}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px}
+.step-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid var(--br2);color:var(--t2);background:var(--bg)}
+.step-circle.done{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.step-circle.active{background:var(--rojo);border-color:var(--rojo);color:#fff;box-shadow:0 0 0 4px rgba(200,16,46,0.18)}
+.step-label{font-size:10px;color:var(--t2);white-space:nowrap}
+.step-label.active{color:var(--t1);font-weight:500}
+.step-line{flex:1;height:2px;background:var(--br2);margin:0 4px;margin-bottom:14px;min-width:24px}
+.step-line.done{background:var(--rojo)}
+
+/* HEADER PANTALLA */
+.screen-header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--br)}
+.screen-title{font-size:16px;font-weight:600;color:var(--t1)}
+.skip-btn{font-size:13px;color:var(--t2);cursor:pointer;background:none;border:none;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+.skip-btn:hover{color:var(--t1)}
+
+/* NOTA OPCIONAL */
+.optional-note{padding:10px 18px;background:rgba(245,166,35,0.06);border-bottom:1px solid rgba(245,166,35,0.12);display:flex;align-items:center;gap:8px}
+.optional-note-icon{font-size:14px;flex-shrink:0}
+.optional-note-text{font-size:12px;color:var(--amarillo);line-height:1.4}
+
+/* CATEGORÍAS */
+.cat-tabs{padding:12px 18px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid var(--br)}
+.cat-tab{flex-shrink:0;padding:6px 14px;border-radius:100px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--br2);color:var(--t2);background:var(--sf2);white-space:nowrap;transition:all .15s}
+.cat-tab.on{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+
+/* PRODUCTOS */
+.productos-list{padding:14px 18px;display:flex;flex-direction:column;gap:10px;padding-bottom:140px}
+
+.producto-card{background:var(--sf);border:1px solid var(--br);border-radius:12px;display:flex;gap:0;overflow:hidden}
+.producto-img{width:80px;flex-shrink:0;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:32px;min-height:90px}
+.producto-body{flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.producto-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.producto-nombre{font-size:14px;font-weight:500;color:var(--t1);line-height:1.3}
+.producto-precio{font-size:15px;font-weight:700;color:var(--t1);white-space:nowrap;flex-shrink:0}
+.producto-desc{font-size:11px;color:var(--t2);line-height:1.4}
+.producto-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.producto-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:100px}
+.badge-promo{background:rgba(245,166,35,0.15);color:var(--amarillo);border:1px solid rgba(245,166,35,0.25)}
+.badge-pop{background:rgba(200,16,46,0.12);color:#e87;border:1px solid rgba(200,16,46,0.2)}
+.qty-ctrl{display:flex;align-items:center;gap:8px}
+.qty-btn{width:28px;height:28px;border-radius:7px;border:1px solid var(--br2);background:var(--sf2);color:var(--t1);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:300;transition:background .15s;flex-shrink:0}
+.qty-btn:hover{background:var(--sf3)}
+.qty-btn.add{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.qty-btn.add:hover{background:#a50d25}
+.qty-num{font-size:14px;font-weight:600;color:var(--t1);min-width:16px;text-align:center}
+
+/* CTA STICKY */
+.cta-sticky{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:linear-gradient(transparent,var(--bg) 28%);padding:14px 18px 22px;z-index:50}
+.cta-card{background:var(--sf);border:1px solid var(--br2);border-radius:14px;overflow:hidden}
+.cta-items{padding:10px 14px;border-bottom:1px solid var(--br);min-height:38px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.cta-item-tag{font-size:11px;background:var(--sf2);border:1px solid var(--br2);color:var(--t1);padding:3px 9px;border-radius:6px}
+.cta-empty{font-size:12px;color:var(--t3);font-style:italic}
+.cta-row{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cta-totales{display:flex;flex-direction:column;gap:1px}
+.cta-total-label{font-size:11px;color:var(--t2)}
+.cta-total-num{font-size:17px;font-weight:700;color:var(--t1)}
+.cta-btns{display:flex;gap:8px;flex-shrink:0}
+.btn-skip-sm{background:transparent;border:1px solid var(--br2);color:var(--t2);border-radius:9px;padding:9px 14px;font-size:12px;cursor:pointer;white-space:nowrap}
+.btn-continue{background:var(--rojo);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* DESKTOP */
+.d-layout{display:grid;grid-template-columns:1fr 290px;min-height:500px}
+.d-productos-col{padding:20px 24px;border-right:1px solid var(--br)}
+.d-sidebar{padding:20px 20px;display:flex;flex-direction:column;gap:16px}
+.d-sidebar-title{font-size:12px;font-weight:500;color:var(--t2);letter-spacing:.07em;text-transform:uppercase}
+.d-resumen-funcion{background:var(--sf2);border:1px solid var(--br);border-radius:10px;padding:14px}
+.d-res-row{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--br);font-size:12px}
+.d-res-row:last-child{border-bottom:none;padding-bottom:0}
+.d-res-label{color:var(--t2)}
+.d-res-val{color:var(--t1);font-weight:500;text-align:right}
+.d-pedido{background:var(--sf2);border:1px solid var(--br);border-radius:10px;padding:14px;min-height:80px}
+.d-pedido-title{font-size:12px;color:var(--t2);margin-bottom:10px}
+.d-pedido-items{display:flex;flex-direction:column;gap:6px}
+.d-pedido-item{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.d-pedido-item-nombre{color:var(--t1)}
+.d-pedido-item-precio{color:var(--t1);font-weight:500;white-space:nowrap}
+.d-pedido-empty{font-size:12px;color:var(--t3);font-style:italic}
+.d-total-row{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--br2);margin-top:8px}
+.d-total-label{font-size:13px;font-weight:600;color:var(--t1)}
+.d-total-num{font-size:20px;font-weight:700;color:var(--t1)}
+.d-cta-btns{display:flex;flex-direction:column;gap:8px;margin-top:auto}
+.d-btn-continue{background:var(--rojo);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer}
+.d-btn-skip{background:transparent;border:1px solid var(--br2);color:var(--t2);border-radius:10px;padding:11px;font-size:13px;cursor:pointer}
+
+.d-cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.d-productos-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.d-prod-card{background:var(--sf);border:1px solid var(--br);border-radius:12px;overflow:hidden}
+.d-prod-img{height:90px;background:var(--sf2);display:flex;align-items:center;justify-content:center;font-size:36px}
+.d-prod-body{padding:10px 12px}
+.d-prod-nombre{font-size:13px;font-weight:500;color:var(--t1);margin-bottom:3px}
+.d-prod-desc{font-size:11px;color:var(--t2);margin-bottom:8px;line-height:1.4}
+.d-prod-footer{display:flex;align-items:center;justify-content:space-between}
+.d-prod-precio{font-size:14px;font-weight:700;color:var(--t1)}
+
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <span style="font-size:11px;color:#888">Candyshop</span>
+    <button class="vbtn active" onclick="sv('m')">📱 Mobile</button>
+    <button class="vbtn" onclick="sv('d')">🖥 Desktop</button>
+    <button class="vbtn" onclick="sv('a')">Ambos</button>
+  </div>
+  <div class="ctrl-group">
+    <button class="cbtn" id="lbtn" onclick="tl()">🌐 <span id="ll">Cambiar a EN</span></button>
+    <button class="cbtn" id="tbtn" onclick="tt()">☀️ <span id="tl">Modo claro</span></button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- MOBILE -->
+  <div id="vm" class="mobile-frame">
+    <div class="nav">
+      <button class="back-btn">‹ <span data-es="Asientos" data-en="Seats">Asientos</span></button>
+      <div class="logo-box">LOGO</div>
+    </div>
+
+    <div class="stepper">
+      <div class="stepper-row">
+        <div class="step"><div class="step-circle done">✓</div><span class="step-label" data-es="Butacas" data-en="Seats">Butacas</span></div>
+        <div class="step-line done"></div>
+        <div class="step"><div class="step-circle active">2</div><span class="step-label active" data-es="Información" data-en="Details">Información</span></div>
+        <div class="step-line"></div>
+        <div class="step"><div class="step-circle">3</div><span class="step-label" data-es="Pago" data-en="Payment">Pago</span></div>
+      </div>
+    </div>
+
+    <div class="screen-header">
+      <span class="screen-title" data-es="Candyshop" data-en="Candyshop">Candyshop</span>
+      <button class="skip-btn" data-es="Saltar este paso" data-en="Skip this step">Saltar este paso</button>
+    </div>
+
+    <div class="optional-note">
+      <span class="optional-note-icon">💡</span>
+      <span class="optional-note-text" data-es="Paso opcional — podés agregar algo para la función o saltearlo." data-en="Optional step — add something for the show or skip it.">Paso opcional — podés agregar algo para la función o saltearlo.</span>
+    </div>
+
+    <div class="cat-tabs">
+      <span class="cat-tab on" onclick="selCat(this)" data-es="Todo" data-en="All">Todo</span>
+      <span class="cat-tab" onclick="selCat(this)" data-es="Combos" data-en="Combos">Combos</span>
+      <span class="cat-tab" onclick="selCat(this)" data-es="Pochoclo" data-en="Popcorn">Pochoclo</span>
+      <span class="cat-tab" onclick="selCat(this)" data-es="Bebidas" data-en="Drinks">Bebidas</span>
+      <span class="cat-tab" onclick="selCat(this)" data-es="Dulces" data-en="Snacks">Dulces</span>
+    </div>
+
+    <div class="productos-list" id="prodListM">
+
+      <div class="producto-card">
+        <div class="producto-img">🍿🥤</div>
+        <div class="producto-body">
+          <div class="producto-top">
+            <span class="producto-nombre" data-es="Combo Grande" data-en="Large Combo">Combo Grande</span>
+            <span class="producto-precio">$2.600</span>
+          </div>
+          <span class="producto-desc" data-es="Pochoclo grande + gaseosa grande" data-en="Large popcorn + large soda">Pochoclo grande + gaseosa grande</span>
+          <div class="producto-footer">
+            <span class="producto-badge badge-promo" data-es="Ahorrás $400" data-en="Save $400">Ahorrás $400</span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="cambiarQty(this,-1)">−</button>
+              <span class="qty-num">0</span>
+              <button class="qty-btn add" onclick="cambiarQty(this,1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="producto-card">
+        <div class="producto-img">🍿</div>
+        <div class="producto-body">
+          <div class="producto-top">
+            <span class="producto-nombre" data-es="Pochoclo Mediano" data-en="Medium Popcorn">Pochoclo Mediano</span>
+            <span class="producto-precio">$1.200</span>
+          </div>
+          <span class="producto-desc" data-es="Pochoclo salado o dulce, a elección" data-en="Salted or sweet, your choice">Pochoclo salado o dulce, a elección</span>
+          <div class="producto-footer">
+            <span class="producto-badge badge-pop" data-es="Más pedido" data-en="Most popular">Más pedido</span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="cambiarQty(this,-1)">−</button>
+              <span class="qty-num">0</span>
+              <button class="qty-btn add" onclick="cambiarQty(this,1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="producto-card">
+        <div class="producto-img">🥤</div>
+        <div class="producto-body">
+          <div class="producto-top">
+            <span class="producto-nombre" data-es="Gaseosa Grande" data-en="Large Soda">Gaseosa Grande</span>
+            <span class="producto-precio">$900</span>
+          </div>
+          <span class="producto-desc" data-es="Coca-Cola, Sprite, Fanta o agua" data-en="Coca-Cola, Sprite, Fanta or water">Coca-Cola, Sprite, Fanta o agua</span>
+          <div class="producto-footer">
+            <span></span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="cambiarQty(this,-1)">−</button>
+              <span class="qty-num">0</span>
+              <button class="qty-btn add" onclick="cambiarQty(this,1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="producto-card">
+        <div class="producto-img">🍫</div>
+        <div class="producto-body">
+          <div class="producto-top">
+            <span class="producto-nombre" data-es="Chocolate Shot 2×1" data-en="Chocolate Shot 2×1">Chocolate Shot 2×1</span>
+            <span class="producto-precio">$800</span>
+          </div>
+          <span class="producto-desc" data-es="Llevás dos pagando uno — solo hoy" data-en="Two for the price of one — today only">Llevás dos pagando uno — solo hoy</span>
+          <div class="producto-footer">
+            <span class="producto-badge badge-promo" data-es="2×1 hoy" data-en="2 for 1 today">2×1 hoy</span>
+            <div class="qty-ctrl">
+              <button class="qty-btn" onclick="cambiarQty(this,-1)">−</button>
+              <span class="qty-num">0</span>
+              <button class="qty-btn add" onclick="cambiarQty(this,1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="cta-sticky">
+      <div class="cta-card">
+        <div class="cta-items" id="ctaItemsM">
+          <span class="cta-empty" data-es="Ningún producto agregado" data-en="No items added yet">Ningún producto agregado</span>
+        </div>
+        <div class="cta-row">
+          <div class="cta-totales">
+            <span class="cta-total-label" data-es="Entradas + Candy" data-en="Tickets + Candy">Entradas + Candy</span>
+            <span class="cta-total-num" id="totalCombM">$1.600</span>
+          </div>
+          <div class="cta-btns">
+            <button class="btn-skip-sm" data-es="Saltar" data-en="Skip">Saltar</button>
+            <button class="btn-continue" data-es="Continuar" data-en="Continue">Continuar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP -->
+  <div id="vd" class="desktop-frame hidden">
+    <div class="nav" style="padding:11px 20px">
+      <button class="back-btn">‹ <span data-es="Asientos" data-en="Seats">Asientos</span></button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo-box">LOGO</div>
+        <div><div class="logo-text">CINES PASEO ALDREY</div><div class="logo-sub">Salas 1·2·3·4·5·6</div></div>
+      </div>
+      <button class="skip-btn" style="color:var(--t2)" data-es="Saltar Candyshop →" data-en="Skip Candyshop →">Saltar Candyshop →</button>
+    </div>
+
+    <div class="stepper">
+      <div class="stepper-row" style="max-width:400px;margin:0 auto">
+        <div class="step"><div class="step-circle done">✓</div><span class="step-label" data-es="Butacas" data-en="Seats">Butacas</span></div>
+        <div class="step-line done"></div>
+        <div class="step"><div class="step-circle active">2</div><span class="step-label active" data-es="Información" data-en="Details">Información</span></div>
+        <div class="step-line"></div>
+        <div class="step"><div class="step-circle">3</div><span class="step-label" data-es="Pago" data-en="Payment">Pago</span></div>
+      </div>
+    </div>
+
+    <div class="d-layout">
+      <div class="d-productos-col">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <span style="font-size:18px;font-weight:600;color:var(--t1)" data-es="Candyshop" data-en="Candyshop">Candyshop</span>
+          <div class="optional-note" style="background:transparent;border:none;padding:0;gap:5px">
+            <span style="font-size:13px">💡</span>
+            <span style="font-size:12px;color:var(--amarillo)" data-es="Paso opcional" data-en="Optional step">Paso opcional</span>
+          </div>
+        </div>
+
+        <div class="d-cat-tabs">
+          <span class="cat-tab on" onclick="selCat(this)" data-es="Todo" data-en="All">Todo</span>
+          <span class="cat-tab" onclick="selCat(this)" data-es="Combos" data-en="Combos">Combos</span>
+          <span class="cat-tab" onclick="selCat(this)" data-es="Pochoclo" data-en="Popcorn">Pochoclo</span>
+          <span class="cat-tab" onclick="selCat(this)" data-es="Bebidas" data-en="Drinks">Bebidas</span>
+          <span class="cat-tab" onclick="selCat(this)" data-es="Dulces" data-en="Snacks">Dulces</span>
+        </div>
+
+        <div class="d-productos-grid">
+          <div class="d-prod-card">
+            <div class="d-prod-img">🍿🥤</div>
+            <div class="d-prod-body">
+              <div class="d-prod-nombre" data-es="Combo Grande" data-en="Large Combo">Combo Grande</div>
+              <div class="d-prod-desc" data-es="Pochoclo grande + gaseosa grande" data-en="Large popcorn + large soda">Pochoclo grande + gaseosa grande</div>
+              <div class="d-prod-footer">
+                <span class="d-prod-precio">$2.600</span>
+                <div class="qty-ctrl">
+                  <button class="qty-btn" onclick="cambiarQty(this,-1)">−</button>
+                  <span class="qty-num">0</span>
+                  <button class="qty-btn add" onclick="cambiarQty(this,1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="d-prod-card">
+            <div class="d-prod-img">🍿</div>
+            <div class="d-prod-body">
+              <div class="d-prod-nombre" data-es="Pochoclo Mediano" data-en="Medium Popcorn">Pochoclo Mediano</div>
+              <div class="d-prod-desc" data-es="Salado o dulce, a elección" data-en="Salted or sweet, your choice">Salado o dulce, a elección</div>
+              <div class="d-prod-footer">
+                <span class="d-prod-precio">$1.200</span>
+                <div class="qty-ctrl">
+                  <button class="qty-btn" onclick="cambiarQty(this,-1)">−</button>
+                  <span class="qty-num">0</span>
+                  <button class="qty-btn add" onclick="cambiarQty(this,1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="d-prod-card">
+            <div class="d-prod-img">🥤</div>
+            <div class="d-prod-body">
+              <div class="d-prod-nombre" data-es="Gaseosa Grande" data-en="Large Soda">Gaseosa Grande</div>
+              <div class="d-prod-desc" data-es="Coca-Cola, Sprite, Fanta o agua" data-en="Coca-Cola, Sprite, Fanta or water">Coca-Cola, Sprite, Fanta o agua</div>
+              <div class="d-prod-footer">
+                <span class="d-prod-precio">$900</span>
+                <div class="qty-ctrl">
+                  <button class="qty-btn" onclick="cambiarQty(this,-1)">−</button>
+                  <span class="qty-num">0</span>
+                  <button class="qty-btn add" onclick="cambiarQty(this,1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="d-prod-card">
+            <div class="d-prod-img">🍫</div>
+            <div class="d-prod-body">
+              <div class="d-prod-nombre" data-es="Chocolate Shot 2×1" data-en="Chocolate Shot 2×1">Chocolate Shot 2×1</div>
+              <div class="d-prod-desc" data-es="Llevás dos pagando uno — solo hoy" data-en="Two for one — today only">Llevás dos pagando uno — solo hoy</div>
+              <div class="d-prod-footer">
+                <span class="d-prod-precio">$800</span>
+                <div class="qty-ctrl">
+                  <button class="qty-btn" onclick="cambiarQty(this,-1)">−</button>
+                  <span class="qty-num">0</span>
+                  <button class="qty-btn add" onclick="cambiarQty(this,1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="d-sidebar">
+        <div class="d-sidebar-title" data-es="Tu compra" data-en="Your order">Tu compra</div>
+
+        <div class="d-resumen-funcion">
+          <div class="d-res-row"><span class="d-res-label" data-es="Película" data-en="Film">Película</span><span class="d-res-val">Star Wars</span></div>
+          <div class="d-res-row"><span class="d-res-label" data-es="Función" data-en="Showtime">Función</span><span class="d-res-val">Lun 1 · 14:00</span></div>
+          <div class="d-res-row" style="border-bottom:none"><span class="d-res-label" data-es="Asientos" data-en="Seats">Asientos</span><span class="d-res-val">B4, B5</span></div>
+        </div>
+
+        <div class="d-pedido">
+          <div class="d-pedido-title" data-es="Candyshop agregado" data-en="Added items">Candyshop agregado</div>
+          <div class="d-pedido-items" id="dPedidoItems">
+            <span class="d-pedido-empty" data-es="Ningún producto aún" data-en="No items yet">Ningún producto aún</span>
+          </div>
+          <div class="d-total-row">
+            <span class="d-total-label" data-es="Total" data-en="Total">Total</span>
+            <span class="d-total-num" id="dTotalNum">$1.600</span>
+          </div>
+        </div>
+
+        <div class="d-cta-btns">
+          <button class="d-btn-continue" data-es="Continuar →" data-en="Continue →">Continuar →</button>
+          <button class="d-btn-skip" data-es="Saltar sin agregar" data-en="Skip without adding">Saltar sin agregar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var dk=true,es=true;
+var entradas=1600;
+var pedido={};
+
+var precios={
+  'Combo Grande':2600,'Pochoclo Mediano':1200,'Gaseosa Grande':900,'Chocolate Shot 2×1':800
+};
+
+function cambiarQty(btn,delta){
+  var ctrl=btn.parentElement;
+  var numEl=ctrl.querySelector('.qty-num');
+  var n=parseInt(numEl.textContent)+delta;
+  if(n<0)n=0;
+  numEl.textContent=n;
+  var card=btn.closest('.producto-card')||btn.closest('.d-prod-card');
+  var nombre=card.querySelector('[data-es]').getAttribute('data-es')||card.querySelector('.producto-nombre, .d-prod-nombre').textContent;
+  if(n===0) delete pedido[nombre];
+  else pedido[nombre]=n;
+  actualizarUI();
+}
+
+function actualizarUI(){
+  var candyTotal=0;
+  Object.keys(pedido).forEach(function(k){candyTotal+=precios[k]*pedido[k];});
+  var total=entradas+candyTotal;
+
+  // Mobile items
+  var ctaM=document.getElementById('ctaItemsM');
+  ctaM.innerHTML='';
+  if(Object.keys(pedido).length===0){
+    ctaM.innerHTML='<span class="cta-empty">'+(es?'Ningún producto agregado':'No items added yet')+'</span>';
+  } else {
+    Object.keys(pedido).forEach(function(k){
+      var tag=document.createElement('span');
+      tag.className='cta-item-tag';
+      tag.textContent=pedido[k]+'× '+k;
+      ctaM.appendChild(tag);
+    });
+  }
+  document.getElementById('totalCombM').textContent='$'+total.toLocaleString('es-AR');
+
+  // Desktop
+  var dItems=document.getElementById('dPedidoItems');
+  dItems.innerHTML='';
+  if(Object.keys(pedido).length===0){
+    dItems.innerHTML='<span class="d-pedido-empty">'+(es?'Ningún producto aún':'No items yet')+'</span>';
+  } else {
+    Object.keys(pedido).forEach(function(k){
+      var row=document.createElement('div');
+      row.className='d-pedido-item';
+      row.innerHTML='<span class="d-pedido-item-nombre">'+pedido[k]+'× '+k+'</span><span class="d-pedido-item-precio">$'+(precios[k]*pedido[k]).toLocaleString('es-AR')+'</span>';
+      dItems.appendChild(row);
+    });
+  }
+  document.getElementById('dTotalNum').textContent='$'+total.toLocaleString('es-AR');
+}
+
+function selCat(el){
+  el.closest('.cat-tabs,.d-cat-tabs').querySelectorAll('.cat-tab').forEach(function(c){c.classList.remove('on');});
+  el.classList.add('on');
+}
+function tt(){dk=!dk;document.body.className=dk?'':'light';document.getElementById('tl').textContent=dk?(es?'Modo claro':'Light mode'):(es?'Modo oscuro':'Dark mode');document.getElementById('tbtn').className=dk?'cbtn':'cbtn on';}
+function tl(){es=!es;document.getElementById('ll').textContent=es?'Cambiar a EN':'Switch to ES';document.querySelectorAll('[data-es]').forEach(function(el){el.textContent=es?el.dataset.es:el.dataset.en;});document.getElementById('tl').textContent=dk?(es?'Modo claro':'Light mode'):(es?'Modo oscuro':'Dark mode');}
+function sv(v){var m=document.getElementById('vm'),d=document.getElementById('vd');document.querySelectorAll('.vbtn').forEach(function(b,i){b.classList.toggle('active',['m','d','a'][i]===v);});if(v==='m'){m.classList.remove('hidden');d.classList.add('hidden');}else if(v==='d'){m.classList.add('hidden');d.classList.remove('hidden');}else{m.classList.remove('hidden');d.classList.remove('hidden');}}
+</script>
+</body>
+</html>

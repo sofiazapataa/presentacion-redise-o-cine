@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Selección de Asientos — Cines Paseo Aldrey (Rediseño)</title>
+<style>
+:root{
+  --bg:#111;--sf:#1C1C1C;--sf2:#252525;--sf3:#2E2E2E;
+  --br:rgba(255,255,255,0.08);--br2:rgba(255,255,255,0.15);
+  --t1:#F2F0EC;--t2:#999;--t3:#555;
+  --nv:#0D0D0D;--rojo:#C8102E;--amarillo:#F5A623;
+  --disponible:#2E3A2E;--disponible-bor:#3d5c3d;
+  --seleccionado:#C8102E;--ocupado:#1f1f1f;--ocupado-bor:#2a2a2a;
+  --reducida:#2a2a3a;--reducida-bor:#4a4a7a;
+}
+.light{
+  --bg:#F4F2EE;--sf:#fff;--sf2:#F0EDE8;--sf3:#E5E1DB;
+  --br:rgba(0,0,0,0.08);--br2:rgba(0,0,0,0.16);
+  --t1:#111;--t2:#666;--t3:#bbb;--nv:#1a1a1a;
+  --disponible:#e8f4e8;--disponible-bor:#a8d4a8;
+  --seleccionado:#C8102E;--ocupado:#e0ddd8;--ocupado-bor:#ccc;
+  --reducida:#e8e8f4;--reducida-bor:#a8a8d4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:system-ui,-apple-system,sans-serif;transition:background .2s;min-height:100vh}
+
+.controls{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--nv);border-bottom:1px solid var(--br);flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100}
+.ctrl-group{display:flex;gap:6px;align-items:center}
+.cbtn{background:rgba(255,255,255,0.07);border:.5px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#ccc;display:flex;align-items:center;gap:5px}
+.cbtn.on{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+.vbtn{background:rgba(255,255,255,0.07);border:.5px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#ccc}
+.vbtn.active{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+
+.layout{display:flex;gap:28px;justify-content:center;padding:24px 20px;align-items:flex-start;flex-wrap:wrap}
+.mobile-frame{width:375px;background:var(--bg);border:1px solid var(--br);border-radius:22px;overflow:hidden}
+.desktop-frame{flex:1;min-width:640px;max-width:1000px;background:var(--bg);border:1px solid var(--br);border-radius:16px;overflow:hidden}
+
+/* NAV */
+.nav{background:var(--nv);padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.logo-box{width:34px;height:34px;border:2px dashed var(--rojo);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--rojo);text-align:center;line-height:1.2;flex-shrink:0}
+.logo-text{color:#fff;font-size:12px;font-weight:600}
+.logo-sub{color:#888;font-size:10px}
+.back-btn{display:flex;align-items:center;gap:5px;color:#ccc;font-size:13px;cursor:pointer;background:none;border:none;padding:0}
+
+/* STEPPER */
+.stepper{background:var(--sf);border-bottom:1px solid var(--br);padding:16px 20px}
+.stepper-row{display:flex;align-items:center;justify-content:center;gap:0}
+.step{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;z-index:1}
+.step-circle{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid var(--br2);color:var(--t2);background:var(--bg);transition:all .2s}
+.step-circle.done{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.step-circle.active{background:var(--rojo);border-color:var(--rojo);color:#fff;box-shadow:0 0 0 4px rgba(200,16,46,0.2)}
+.step-label{font-size:10px;color:var(--t2);white-space:nowrap;letter-spacing:.03em}
+.step-label.active{color:var(--t1);font-weight:500}
+.step-line{flex:1;height:2px;background:var(--br2);margin:0 4px;margin-bottom:15px;min-width:28px;transition:background .2s}
+.step-line.done{background:var(--rojo)}
+
+/* RESUMEN FUNCIÓN */
+.funcion-bar{background:var(--sf2);border-bottom:1px solid var(--br);padding:11px 18px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.funcion-info{display:flex;flex-direction:column;gap:2px}
+.funcion-peli{font-size:13px;font-weight:500;color:var(--t1)}
+.funcion-detalle{font-size:11px;color:var(--t2)}
+.funcion-cambiar{font-size:11px;color:var(--rojo);cursor:pointer;white-space:nowrap;flex-shrink:0}
+
+/* CANTIDAD */
+.cantidad-bar{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--br)}
+.cantidad-label{font-size:13px;color:var(--t1)}
+.cantidad-label span{color:var(--t2);font-size:12px;margin-left:6px}
+.cantidad-ctrl{display:flex;align-items:center;gap:10px}
+.qty-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--br2);background:var(--sf2);color:var(--t1);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:300;transition:background .15s}
+.qty-btn:hover{background:var(--sf3)}
+.qty-num{font-size:15px;font-weight:600;color:var(--t1);min-width:20px;text-align:center}
+.precio-tag{font-size:13px;color:var(--t2)}
+.precio-tag strong{color:var(--t1);font-weight:600}
+
+/* LEYENDA */
+.leyenda{padding:12px 18px;display:flex;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--br);background:var(--sf)}
+.leyenda-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t2)}
+.leyenda-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.leyenda-dot.disp{background:var(--disponible);border:1px solid var(--disponible-bor)}
+.leyenda-dot.sel{background:var(--seleccionado)}
+.leyenda-dot.ocup{background:var(--ocupado);border:1px solid var(--ocupado-bor)}
+.leyenda-dot.redu{background:var(--reducida);border:1px solid var(--reducida-bor)}
+
+/* SALA */
+.sala-wrap{padding:16px 14px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.pantalla-label{text-align:center;margin-bottom:16px}
+.pantalla-bar{background:linear-gradient(180deg,rgba(200,16,46,0.5) 0%,rgba(200,16,46,0.08) 100%);height:6px;border-radius:3px;margin:0 10px 6px}
+.pantalla-text{font-size:10px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;text-align:center}
+
+.sala-grid{display:flex;flex-direction:column;gap:5px;align-items:center;min-width:280px}
+.sala-row{display:flex;gap:4px;align-items:center}
+.row-label{width:16px;font-size:9px;color:var(--t3);text-align:right;flex-shrink:0;margin-right:4px}
+.asiento{
+  width:22px;height:20px;border-radius:3px 3px 2px 2px;
+  border:1px solid var(--disponible-bor);
+  background:var(--disponible);
+  cursor:pointer;transition:all .12s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:7px;color:transparent;
+}
+.asiento:hover{border-color:var(--rojo);background:rgba(200,16,46,0.2)}
+.asiento.ocupado{background:var(--ocupado);border-color:var(--ocupado-bor);cursor:not-allowed}
+.asiento.ocupado:hover{background:var(--ocupado);border-color:var(--ocupado-bor)}
+.asiento.seleccionado{background:var(--seleccionado);border-color:var(--rojo);color:#fff}
+.asiento.seleccionado:hover{background:#a50d25}
+.asiento.reducida{background:var(--reducida);border-color:var(--reducida-bor);cursor:pointer}
+.asiento.reducida:hover{border-color:#8080cc}
+.asiento.espacio{background:transparent;border-color:transparent;cursor:default;pointer-events:none}
+.asiento.espacio:hover{background:transparent}
+
+/* CTA BOTTOM */
+.cta-bottom{position:sticky;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:16px 18px 22px}
+.cta-card{background:var(--sf);border:1px solid var(--br2);border-radius:14px;overflow:hidden}
+.cta-asientos{padding:12px 16px;border-bottom:1px solid var(--br);display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-height:44px}
+.asiento-sel-tag{background:var(--rojo);color:#fff;font-size:11px;padding:3px 9px;border-radius:6px;font-weight:500}
+.cta-placeholder{font-size:12px;color:var(--t3);font-style:italic}
+.cta-row{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cta-precio{display:flex;flex-direction:column;gap:2px}
+.cta-precio-label{font-size:11px;color:var(--t2)}
+.cta-precio-num{font-size:18px;font-weight:700;color:var(--t1)}
+.cta-btn{background:var(--rojo);color:#fff;border:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.cta-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* DESKTOP ESPECÍFICO */
+.d-body{display:grid;grid-template-columns:1fr 280px;min-height:500px}
+.d-sala-col{padding:20px;border-right:1px solid var(--br)}
+.d-sidebar{padding:20px;display:flex;flex-direction:column;gap:0}
+.d-sidebar-title{font-size:12px;font-weight:500;color:var(--t2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:16px}
+.d-resumen-card{background:var(--sf2);border:1px solid var(--br);border-radius:12px;padding:16px;margin-bottom:16px}
+.d-res-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--br)}
+.d-res-row:last-child{border-bottom:none;padding-bottom:0}
+.d-res-label{font-size:12px;color:var(--t2)}
+.d-res-val{font-size:12px;color:var(--t1);font-weight:500;text-align:right}
+.d-total-row{display:flex;justify-content:space-between;align-items:center;padding-top:14px;margin-top:4px;border-top:1px solid var(--br2)}
+.d-total-label{font-size:13px;font-weight:500;color:var(--t1)}
+.d-total-num{font-size:20px;font-weight:700;color:var(--t1)}
+.d-asientos-sel{margin-bottom:14px}
+.d-asientos-label{font-size:12px;color:var(--t2);margin-bottom:8px}
+.d-asientos-tags{display:flex;gap:5px;flex-wrap:wrap;min-height:28px}
+.d-seat-tag{background:var(--rojo);color:#fff;font-size:11px;padding:3px 9px;border-radius:6px;font-weight:500}
+.d-seat-placeholder{font-size:12px;color:var(--t3);font-style:italic}
+.d-cta-btn{width:100%;background:var(--rojo);color:#fff;border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;margin-top:auto}
+.d-cta-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <span style="font-size:11px;color:#888">Selección de asientos</span>
+    <button class="vbtn active" onclick="sv('m')">📱 Mobile</button>
+    <button class="vbtn" onclick="sv('d')">🖥 Desktop</button>
+    <button class="vbtn" onclick="sv('a')">Ambos</button>
+  </div>
+  <div class="ctrl-group">
+    <button class="cbtn" id="lbtn" onclick="tl()">🌐 <span id="ll">Cambiar a EN</span></button>
+    <button class="cbtn" id="tbtn" onclick="tt()">☀️ <span id="tl">Modo claro</span></button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- MOBILE -->
+  <div id="vm" class="mobile-frame">
+    <div class="nav">
+      <button class="back-btn">‹ <span data-es="Elegir función" data-en="Choose showtime">Elegir función</span></button>
+      <div class="logo-box">LOGO</div>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="stepper">
+      <div class="stepper-row">
+        <div class="step">
+          <div class="step-circle active">1</div>
+          <span class="step-label active" data-es="Butacas" data-en="Seats">Butacas</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-circle">2</div>
+          <span class="step-label" data-es="Información" data-en="Details">Información</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-circle">3</div>
+          <span class="step-label" data-es="Pago" data-en="Payment">Pago</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESUMEN FUNCIÓN -->
+    <div class="funcion-bar">
+      <div class="funcion-info">
+        <span class="funcion-peli">Star Wars: Mandalorian & Grogu</span>
+        <span class="funcion-detalle">Lun 1 · 14:00 · 2D · Español · Sala 3</span>
+      </div>
+      <span class="funcion-cambiar" data-es="Cambiar" data-en="Change">Cambiar</span>
+    </div>
+
+    <!-- CANTIDAD -->
+    <div class="cantidad-bar">
+      <div>
+        <span class="cantidad-label" data-es="Entradas" data-en="Tickets">Entradas <span data-es="(máx. 8)" data-en="(max. 8)">(máx. 8)</span></span>
+      </div>
+      <div class="cantidad-ctrl">
+        <span class="precio-tag" data-es="$800 c/u" data-en="$800 each">$800 c/u</span>
+        <button class="qty-btn" onclick="cambiarCant(-1)">−</button>
+        <span class="qty-num" id="cantNum">2</span>
+        <button class="qty-btn" onclick="cambiarCant(1)">+</button>
+      </div>
+    </div>
+
+    <!-- LEYENDA -->
+    <div class="leyenda">
+      <div class="leyenda-item"><div class="leyenda-dot disp"></div><span data-es="Disponible" data-en="Available">Disponible</span></div>
+      <div class="leyenda-item"><div class="leyenda-dot sel"></div><span data-es="Tu selección" data-en="Your pick">Tu selección</span></div>
+      <div class="leyenda-item"><div class="leyenda-dot ocup"></div><span data-es="Ocupado" data-en="Taken">Ocupado</span></div>
+      <div class="leyenda-item"><div class="leyenda-dot redu"></div><span data-es="Movilidad reducida" data-en="Accessible">Movilidad reducida</span></div>
+    </div>
+
+    <!-- MAPA DE SALA -->
+    <div class="sala-wrap">
+      <div class="pantalla-label">
+        <div class="pantalla-bar"></div>
+        <span class="pantalla-text" data-es="Pantalla" data-en="Screen">Pantalla</span>
+      </div>
+      <div class="sala-grid" id="salaGridM"></div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-bottom">
+      <div class="cta-card">
+        <div class="cta-asientos" id="ctaAsientosM">
+          <span class="cta-placeholder" data-es="Tocá un asiento para seleccionarlo" data-en="Tap a seat to select it">Tocá un asiento para seleccionarlo</span>
+        </div>
+        <div class="cta-row">
+          <div class="cta-precio">
+            <span class="cta-precio-label" data-es="Total" data-en="Total">Total</span>
+            <span class="cta-precio-num" id="totalM">$0</span>
+          </div>
+          <button class="cta-btn" id="ctaBtnM" disabled data-es="Continuar" data-en="Continue">Continuar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP -->
+  <div id="vd" class="desktop-frame hidden">
+    <div class="nav" style="padding:11px 20px">
+      <button class="back-btn">‹ <span data-es="Elegir función" data-en="Choose showtime">Elegir función</span></button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo-box">LOGO</div>
+        <div><div class="logo-text">CINES PASEO ALDREY</div><div class="logo-sub">Salas 1·2·3·4·5·6</div></div>
+      </div>
+      <div style="width:80px"></div>
+    </div>
+
+    <!-- STEPPER DESKTOP -->
+    <div class="stepper">
+      <div class="stepper-row" style="max-width:400px;margin:0 auto">
+        <div class="step">
+          <div class="step-circle active">1</div>
+          <span class="step-label active" data-es="Butacas" data-en="Seats">Butacas</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-circle">2</div>
+          <span class="step-label" data-es="Información" data-en="Details">Información</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-circle">3</div>
+          <span class="step-label" data-es="Pago" data-en="Payment">Pago</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-body">
+      <!-- SALA -->
+      <div class="d-sala-col">
+        <div class="funcion-bar" style="padding:10px 0;border-bottom:1px solid var(--br);margin-bottom:16px">
+          <div class="funcion-info">
+            <span class="funcion-peli">Star Wars: Mandalorian & Grogu</span>
+            <span class="funcion-detalle">Lun 1 · 14:00 · 2D · Español · Sala 3</span>
+          </div>
+          <span class="funcion-cambiar" data-es="Cambiar función" data-en="Change showtime">Cambiar función</span>
+        </div>
+
+        <div class="cantidad-bar" style="padding:10px 0;margin-bottom:14px">
+          <span class="cantidad-label" data-es="Entradas" data-en="Tickets">Entradas <span style="color:var(--t2);font-size:12px" data-es="(máx. 8)" data-en="(max. 8)">(máx. 8)</span></span>
+          <div class="cantidad-ctrl">
+            <span class="precio-tag" data-es="$800 c/u" data-en="$800 each">$800 c/u</span>
+            <button class="qty-btn" onclick="cambiarCant(-1)">−</button>
+            <span class="qty-num" id="cantNumD">2</span>
+            <button class="qty-btn" onclick="cambiarCant(1)">+</button>
+          </div>
+        </div>
+
+        <div class="leyenda" style="padding:10px 0;margin-bottom:16px;background:transparent;border:none">
+          <div class="leyenda-item"><div class="leyenda-dot disp"></div><span data-es="Disponible" data-en="Available">Disponible</span></div>
+          <div class="leyenda-item"><div class="leyenda-dot sel"></div><span data-es="Tu selección" data-en="Your pick">Tu selección</span></div>
+          <div class="leyenda-item"><div class="leyenda-dot ocup"></div><span data-es="Ocupado" data-en="Taken">Ocupado</span></div>
+          <div class="leyenda-item"><div class="leyenda-dot redu"></div><span data-es="Movilidad reducida" data-en="Accessible">Movilidad reducida</span></div>
+        </div>
+
+        <div class="sala-wrap" style="padding:0">
+          <div class="pantalla-label">
+            <div class="pantalla-bar"></div>
+            <span class="pantalla-text" data-es="Pantalla" data-en="Screen">Pantalla</span>
+          </div>
+          <div class="sala-grid" id="salaGridD" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR RESUMEN -->
+      <div class="d-sidebar">
+        <div class="d-sidebar-title" data-es="Tu compra" data-en="Your order">Tu compra</div>
+
+        <div class="d-asientos-sel">
+          <div class="d-asientos-label" data-es="Asientos seleccionados" data-en="Selected seats">Asientos seleccionados</div>
+          <div class="d-asientos-tags" id="dAsientosTags">
+            <span class="d-seat-placeholder" data-es="Ninguno aún" data-en="None yet">Ninguno aún</span>
+          </div>
+        </div>
+
+        <div class="d-resumen-card">
+          <div class="d-res-row">
+            <span class="d-res-label" data-es="Película" data-en="Film">Película</span>
+            <span class="d-res-val">Star Wars</span>
+          </div>
+          <div class="d-res-row">
+            <span class="d-res-label" data-es="Función" data-en="Showtime">Función</span>
+            <span class="d-res-val">Lun 1 · 14:00</span>
+          </div>
+          <div class="d-res-row">
+            <span class="d-res-label" data-es="Formato" data-en="Format">Formato</span>
+            <span class="d-res-val">2D · Español</span>
+          </div>
+          <div class="d-res-row" style="border-bottom:none">
+            <span class="d-res-label" data-es="Entradas" data-en="Tickets">Entradas</span>
+            <span class="d-res-val" id="dCantLabel">2 × $800</span>
+          </div>
+          <div class="d-total-row">
+            <span class="d-total-label" data-es="Total" data-en="Total">Total</span>
+            <span class="d-total-num" id="totalD">$0</span>
+          </div>
+        </div>
+
+        <button class="d-cta-btn" id="ctaBtnD" disabled data-es="Continuar →" data-en="Continue →">Continuar →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var dk=true, es=true;
+var cant=2, precio=800;
+var seleccionados=[];
+var maxSel=2;
+
+// Layout de la sala: O=ocupado, D=disponible, R=reducida, _=espacio
+var filas = [
+  {label:'A', seats:['_','_','O','O','D','D','D','D','D','D','_','_']},
+  {label:'B', seats:['D','D','D','D','D','O','O','D','D','D','D','D']},
+  {label:'C', seats:['D','D','O','D','D','D','D','D','O','D','D','D']},
+  {label:'D', seats:['D','D','D','D','O','O','D','D','D','D','O','D']},
+  {label:'E', seats:['D','D','D','D','D','D','D','D','D','D','D','D']},
+  {label:'_', seats:[]},
+  {label:'F', seats:['D','O','D','D','D','D','D','D','D','O','D','D']},
+  {label:'G', seats:['D','D','D','O','O','D','D','O','D','D','D','D']},
+  {label:'H', seats:['D','D','D','D','D','D','D','D','D','D','D','D']},
+  {label:'I', seats:['O','D','D','D','D','D','D','D','D','D','D','O']},
+  {label:'_', seats:[]},
+  {label:'J', seats:['R','R','_','D','D','D','D','D','D','_','R','R']},
+];
+
+function buildGrid(containerId, prefix) {
+  var container = document.getElementById(containerId);
+  container.innerHTML = '';
+  filas.forEach(function(fila) {
+    if (fila.label === '_' && fila.seats.length === 0) {
+      var spacer = document.createElement('div');
+      spacer.style.height = '8px';
+      container.appendChild(spacer);
+      return;
+    }
+    var row = document.createElement('div');
+    row.className = 'sala-row';
+    var lbl = document.createElement('span');
+    lbl.className = 'row-label';
+    lbl.textContent = fila.label !== '_' ? fila.label : '';
+    row.appendChild(lbl);
+    fila.seats.forEach(function(tipo, idx) {
+      var seat = document.createElement('div');
+      var seatId = prefix + '-' + fila.label + '-' + idx;
+      if (tipo === '_') {
+        seat.className = 'asiento espacio';
+      } else if (tipo === 'O') {
+        seat.className = 'asiento ocupado';
+        seat.title = es ? 'Ocupado' : 'Taken';
+      } else if (tipo === 'R') {
+        seat.className = 'asiento reducida';
+        seat.id = seatId;
+        seat.onclick = function(){ toggleSeat(this, fila.label, idx+1); };
+      } else {
+        seat.className = 'asiento';
+        seat.id = seatId;
+        seat.onclick = function(){ toggleSeat(this, fila.label, idx+1); };
+      }
+      row.appendChild(seat);
+    });
+    container.appendChild(row);
+  });
+}
+
+function toggleSeat(el, fila, num) {
+  var seatName = fila + num;
+  var isSelected = el.classList.contains('seleccionado');
+  if (isSelected) {
+    el.classList.remove('seleccionado');
+    seleccionados = seleccionados.filter(function(s){ return s !== seatName; });
+  } else {
+    if (seleccionados.length >= maxSel) {
+      // Si ya llegó al máximo, deselecciona el primero
+      var oldest = seleccionados.shift();
+      var oldEls = document.querySelectorAll('[id$="-' + oldest[0] + '-' + (parseInt(oldest.slice(1))-1) + '"]');
+      oldEls.forEach(function(e){ e.classList.remove('seleccionado'); });
+    }
+    el.classList.add('seleccionado');
+    seleccionados.push(seatName);
+    // Seleccionar en ambas grillas
+    var otherPrefix = el.id.startsWith('m-') ? 'd' : 'm';
+    var otherEl = document.getElementById(otherPrefix + '-' + fila + '-' + (num-1));
+    if (otherEl && !otherEl.classList.contains('ocupado')) otherEl.classList.add('seleccionado');
+  }
+  actualizarUI();
+}
+
+function actualizarUI() {
+  var total = seleccionados.length * precio;
+  // Mobile
+  var ctaM = document.getElementById('ctaAsientosM');
+  ctaM.innerHTML = '';
+  if (seleccionados.length === 0) {
+    ctaM.innerHTML = '<span class="cta-placeholder" data-es="Tocá un asiento para seleccionarlo" data-en="Tap a seat to select it">' + (es ? 'Tocá un asiento para seleccionarlo' : 'Tap a seat to select it') + '</span>';
+  } else {
+    seleccionados.forEach(function(s){
+      var tag = document.createElement('span');
+      tag.className = 'asiento-sel-tag';
+      tag.textContent = s;
+      ctaM.appendChild(tag);
+    });
+  }
+  document.getElementById('totalM').textContent = '$' + total.toLocaleString('es-AR');
+  document.getElementById('ctaBtnM').disabled = seleccionados.length !== maxSel;
+  // Desktop
+  var dTags = document.getElementById('dAsientosTags');
+  dTags.innerHTML = '';
+  if (seleccionados.length === 0) {
+    dTags.innerHTML = '<span class="d-seat-placeholder">' + (es ? 'Ninguno aún' : 'None yet') + '</span>';
+  } else {
+    seleccionados.forEach(function(s){
+      var tag = document.createElement('span');
+      tag.className = 'd-seat-tag';
+      tag.textContent = s;
+      dTags.appendChild(tag);
+    });
+  }
+  document.getElementById('totalD').textContent = seleccionados.length > 0 ? '$' + total.toLocaleString('es-AR') : '$0';
+  document.getElementById('ctaBtnD').disabled = seleccionados.length !== maxSel;
+  document.getElementById('dCantLabel').textContent = cant + ' × $' + precio;
+}
+
+function cambiarCant(delta) {
+  var nuevo = cant + delta;
+  if (nuevo < 1 || nuevo > 8) return;
+  cant = nuevo;
+  maxSel = cant;
+  document.getElementById('cantNum').textContent = cant;
+  document.getElementById('cantNumD').textContent = cant;
+  // Limpiar selección si supera nueva cantidad
+  while (seleccionados.length > maxSel) {
+    var rem = seleccionados.pop();
+    document.querySelectorAll('[id$="-' + rem[0] + '-' + (parseInt(rem.slice(1))-1) + '"]').forEach(function(e){
+      e.classList.remove('seleccionado');
+    });
+  }
+  actualizarUI();
+}
+
+function tt(){
+  dk=!dk;
+  document.body.className=dk?'':'light';
+  document.getElementById('tl').textContent=dk?(es?'Modo claro':'Light mode'):(es?'Modo oscuro':'Dark mode');
+  document.getElementById('tbtn').className=dk?'cbtn':'cbtn on';
+}
+function tl(){
+  es=!es;
+  document.getElementById('ll').textContent=es?'Cambiar a EN':'Switch to ES';
+  document.querySelectorAll('[data-es]').forEach(function(el){el.textContent=es?el.dataset.es:el.dataset.en;});
+  document.getElementById('tl').textContent=dk?(es?'Modo claro':'Light mode'):(es?'Modo oscuro':'Dark mode');
+}
+function sv(v){
+  var m=document.getElementById('vm'),d=document.getElementById('vd');
+  document.querySelectorAll('.vbtn').forEach(function(b,i){b.classList.toggle('active',['m','d','a'][i]===v);});
+  if(v==='m'){m.classList.remove('hidden');d.classList.add('hidden');}
+  else if(v==='d'){m.classList.add('hidden');d.classList.remove('hidden');}
+  else{m.classList.remove('hidden');d.classList.remove('hidden');}
+}
+
+// Init
+buildGrid('salaGridM','m');
+buildGrid('salaGridD','d');
+actualizarUI();
+</script>
+</body>
+</html>

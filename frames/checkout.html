@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Checkout — Cines Paseo Aldrey (Rediseño)</title>
+<style>
+:root{
+  --bg:#111;--sf:#1C1C1C;--sf2:#252525;--sf3:#2E2E2E;
+  --br:rgba(255,255,255,0.08);--br2:rgba(255,255,255,0.16);
+  --t1:#F2F0EC;--t2:#999;--t3:#555;
+  --nv:#0D0D0D;--rojo:#C8102E;--amarillo:#F5A623;
+  --success:#1a3a1a;--success-bor:#2d6a2d;--success-text:#6fcf6f;
+}
+.light{
+  --bg:#F4F2EE;--sf:#fff;--sf2:#F0EDE8;--sf3:#E5E1DB;
+  --br:rgba(0,0,0,0.08);--br2:rgba(0,0,0,0.16);
+  --t1:#111;--t2:#666;--t3:#bbb;--nv:#1a1a1a;
+  --success:#e8f4e8;--success-bor:#a8d4a8;--success-text:#2d6a2d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);font-family:system-ui,-apple-system,sans-serif;transition:background .2s;min-height:100vh}
+
+.controls{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--nv);border-bottom:1px solid var(--br);flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100}
+.ctrl-group{display:flex;gap:6px;align-items:center}
+.cbtn{background:rgba(255,255,255,0.07);border:.5px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#ccc;display:flex;align-items:center;gap:5px}
+.cbtn.on{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+.vbtn{background:rgba(255,255,255,0.07);border:.5px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#ccc}
+.vbtn.active{background:var(--rojo);color:#fff;border-color:var(--rojo)}
+.step-toggle{display:flex;gap:4px}
+.step-btn{background:rgba(255,255,255,0.07);border:.5px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:#ccc}
+.step-btn.active{background:#333;color:#fff;border-color:#555}
+
+.layout{display:flex;gap:28px;justify-content:center;padding:24px 20px;align-items:flex-start;flex-wrap:wrap}
+.mobile-frame{width:375px;background:var(--bg);border:1px solid var(--br);border-radius:22px;overflow:hidden}
+.desktop-frame{flex:1;min-width:640px;max-width:1000px;background:var(--bg);border:1px solid var(--br);border-radius:16px;overflow:hidden}
+
+.nav{background:var(--nv);padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.logo-box{width:34px;height:34px;border:2px dashed var(--rojo);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--rojo);text-align:center;line-height:1.2;flex-shrink:0}
+.logo-text{color:#fff;font-size:12px;font-weight:600}
+.logo-sub{color:#888;font-size:10px}
+.back-btn{display:flex;align-items:center;gap:5px;color:#ccc;font-size:13px;cursor:pointer;background:none;border:none;padding:0}
+
+/* STEPPER */
+.stepper{background:var(--sf);border-bottom:1px solid var(--br);padding:16px 20px}
+.stepper-row{display:flex;align-items:center;justify-content:center;gap:0}
+.step{display:flex;flex-direction:column;align-items:center;gap:5px}
+.step-circle{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid var(--br2);color:var(--t2);background:var(--bg);transition:all .2s}
+.step-circle.done{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.step-circle.active{background:var(--rojo);border-color:var(--rojo);color:#fff;box-shadow:0 0 0 4px rgba(200,16,46,0.2)}
+.step-circle.done-check{background:var(--rojo);border-color:var(--rojo);color:#fff}
+.step-label{font-size:10px;color:var(--t2);white-space:nowrap}
+.step-label.active{color:var(--t1);font-weight:500}
+.step-line{flex:1;height:2px;background:var(--br2);margin:0 4px;margin-bottom:15px;min-width:28px;transition:background .2s}
+.step-line.done{background:var(--rojo)}
+
+/* RESUMEN MINI */
+.resumen-mini{background:var(--sf2);border-bottom:1px solid var(--br);padding:11px 18px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.resumen-info{display:flex;flex-direction:column;gap:2px}
+.resumen-peli{font-size:13px;font-weight:500;color:var(--t1)}
+.resumen-detalle{font-size:11px;color:var(--t2)}
+.resumen-total{font-size:15px;font-weight:700;color:var(--t1)}
+
+/* FORM */
+.form-body{padding:20px 18px 110px}
+.form-section-title{font-size:11px;font-weight:500;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;margin-top:22px}
+.form-section-title:first-child{margin-top:0}
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;color:var(--t2);margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--sf2);border:1px solid var(--br2);border-radius:9px;padding:11px 14px;font-size:14px;color:var(--t1);outline:none;transition:border-color .15s;-webkit-appearance:none}
+.form-input:focus{border-color:var(--rojo);background:var(--sf)}
+.form-input::placeholder{color:var(--t3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* MÉTODOS DE PAGO */
+.metodos-grid{display:flex;flex-direction:column;gap:8px}
+.metodo-card{background:var(--sf2);border:1px solid var(--br2);border-radius:11px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .15s}
+.metodo-card.active{border-color:var(--rojo);background:rgba(200,16,46,0.04)}
+.metodo-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--br2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.metodo-radio.on{border-color:var(--rojo);background:var(--rojo)}
+.metodo-radio.on::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff}
+.metodo-icon{font-size:22px;flex-shrink:0}
+.metodo-info{flex:1}
+.metodo-nombre{font-size:14px;font-weight:500;color:var(--t1)}
+.metodo-desc{font-size:11px;color:var(--t2);margin-top:2px}
+.metodo-badge{font-size:10px;background:rgba(245,166,35,.15);color:var(--amarillo);border:1px solid rgba(245,166,35,.25);padding:2px 7px;border-radius:100px;white-space:nowrap}
+
+/* TÉRMINOS */
+.terminos-row{display:flex;align-items:flex-start;gap:10px;margin:16px 0}
+.terminos-check{width:18px;height:18px;accent-color:var(--rojo);flex-shrink:0;margin-top:1px;cursor:pointer}
+.terminos-text{font-size:12px;color:var(--t2);line-height:1.5}
+.terminos-link{color:var(--rojo);text-decoration:none}
+
+/* CTA */
+.cta-sticky{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:375px;background:linear-gradient(transparent,var(--bg) 30%);padding:16px 18px 22px;z-index:50}
+.cta-card{background:var(--sf);border:1px solid var(--br2);border-radius:14px;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.cta-total-label{font-size:11px;color:var(--t2)}
+.cta-total-num{font-size:18px;font-weight:700;color:var(--t1)}
+.cta-btn{background:var(--rojo);color:#fff;border:none;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* CONFIRMACIÓN */
+.confirm-body{padding:32px 20px 40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px}
+.confirm-icon{width:64px;height:64px;border-radius:50%;background:var(--success);border:2px solid var(--success-bor);display:flex;align-items:center;justify-content:center;font-size:28px}
+.confirm-title{font-size:20px;font-weight:700;color:var(--t1);line-height:1.2}
+.confirm-sub{font-size:14px;color:var(--t2);line-height:1.6;max-width:280px}
+.confirm-card{background:var(--sf2);border:1px solid var(--br);border-radius:14px;padding:18px 20px;width:100%;text-align:left}
+.confirm-card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--br)}
+.confirm-card-row:last-child{border-bottom:none;padding-bottom:0}
+.confirm-card-row:first-child{padding-top:0}
+.cc-label{font-size:12px;color:var(--t2)}
+.cc-val{font-size:13px;color:var(--t1);font-weight:500;text-align:right}
+.confirm-asientos{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.confirm-seat{background:var(--rojo);color:#fff;font-size:11px;padding:3px 8px;border-radius:5px;font-weight:500}
+.confirm-total-row{display:flex;justify-content:space-between;align-items:center;padding-top:14px;margin-top:4px;border-top:1px solid var(--br2)}
+.confirm-total-label{font-size:14px;font-weight:600;color:var(--t1)}
+.confirm-total-num{font-size:22px;font-weight:700;color:var(--t1)}
+.confirm-actions{display:flex;flex-direction:column;gap:10px;width:100%}
+.btn-primary{background:var(--rojo);color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;width:100%}
+.btn-ghost{background:transparent;color:var(--t2);border:1px solid var(--br2);border-radius:10px;padding:12px;font-size:14px;cursor:pointer;width:100%}
+.confirm-nota{font-size:11px;color:var(--t3);text-align:center}
+
+/* DESKTOP CHECKOUT */
+.d-checkout-layout{display:grid;grid-template-columns:1fr 300px;min-height:500px}
+.d-form-col{padding:28px 32px;border-right:1px solid var(--br)}
+.d-summary-col{padding:24px 24px;background:var(--sf2)}
+.d-sum-title{font-size:12px;font-weight:500;color:var(--t2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:16px}
+.d-sum-card{background:var(--sf);border:1px solid var(--br);border-radius:12px;padding:16px;margin-bottom:16px}
+.d-sum-row{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--br);font-size:13px}
+.d-sum-row:last-child{border-bottom:none;padding-bottom:0}
+.d-sum-label{color:var(--t2)}
+.d-sum-val{color:var(--t1);font-weight:500;text-align:right}
+.d-sum-total{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--br2)}
+.d-sum-total-label{font-size:14px;font-weight:600;color:var(--t1)}
+.d-sum-total-num{font-size:22px;font-weight:700;color:var(--t1)}
+.d-submit-btn{width:100%;background:var(--rojo);color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px}
+
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <span style="font-size:11px;color:#888">Checkout</span>
+    <button class="vbtn active" onclick="sv('m')">📱 Mobile</button>
+    <button class="vbtn" onclick="sv('d')">🖥 Desktop</button>
+    <button class="vbtn" onclick="sv('a')">Ambos</button>
+  </div>
+  <div class="ctrl-group">
+    <div class="step-toggle">
+      <button class="step-btn active" onclick="setStep(2)">Paso 2 — Info</button>
+      <button class="step-btn" onclick="setStep(3)">Paso 3 — Confirmación</button>
+    </div>
+    <button class="cbtn" id="lbtn" onclick="tl()">🌐 <span id="ll">Cambiar a EN</span></button>
+    <button class="cbtn" id="tbtn" onclick="tt()">☀️ <span id="tl">Modo claro</span></button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- MOBILE -->
+  <div id="vm" class="mobile-frame">
+    <div class="nav">
+      <button class="back-btn" id="mBackBtn">‹ <span id="mBackLabel" data-es="Butacas" data-en="Seats">Butacas</span></button>
+      <div class="logo-box">LOGO</div>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="stepper">
+      <div class="stepper-row" id="mStepper">
+        <!-- se genera por JS -->
+      </div>
+    </div>
+
+    <!-- RESUMEN MINI -->
+    <div class="resumen-mini">
+      <div class="resumen-info">
+        <span class="resumen-peli">Star Wars: Mandalorian & Grogu</span>
+        <span class="resumen-detalle">Lun 1 · 14:00 · Asientos B4, B5</span>
+      </div>
+      <span class="resumen-total">$1.600</span>
+    </div>
+
+    <!-- PASO 2: INFORMACIÓN -->
+    <div id="mStep2">
+      <div class="form-body">
+        <div class="form-section-title" data-es="Datos personales" data-en="Personal details">Datos personales</div>
+
+        <div class="form-group">
+          <label class="form-label" data-es="Nombre y apellido" data-en="Full name">Nombre y apellido</label>
+          <input class="form-input" type="text" placeholder="Ej: Sofía Zapata" autocomplete="name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" placeholder="sofizapata@email.com" autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-es="Teléfono (opcional)" data-en="Phone (optional)">Teléfono (opcional)</label>
+          <input class="form-input" type="tel" placeholder="+54 9 223 000-0000" autocomplete="tel"/>
+        </div>
+
+        <div class="form-section-title" data-es="Método de pago" data-en="Payment method">Método de pago</div>
+
+        <div class="metodos-grid">
+          <div class="metodo-card active" onclick="selMetodo(this)">
+            <div class="metodo-radio on"></div>
+            <div class="metodo-icon">💳</div>
+            <div class="metodo-info">
+              <div class="metodo-nombre" data-es="Tarjeta de crédito/débito" data-en="Credit / debit card">Tarjeta de crédito/débito</div>
+              <div class="metodo-desc" data-es="Visa, Mastercard, American Express" data-en="Visa, Mastercard, American Express">Visa, Mastercard, American Express</div>
+            </div>
+          </div>
+          <div class="metodo-card" onclick="selMetodo(this)">
+            <div class="metodo-radio"></div>
+            <div class="metodo-icon">🟦</div>
+            <div class="metodo-info">
+              <div class="metodo-nombre">Mercado Pago</div>
+              <div class="metodo-desc" data-es="QR, saldo o tarjeta guardada" data-en="QR, balance or saved card">QR, saldo o tarjeta guardada</div>
+            </div>
+            <span class="metodo-badge" data-es="Popular" data-en="Popular">Popular</span>
+          </div>
+          <div class="metodo-card" onclick="selMetodo(this)">
+            <div class="metodo-radio"></div>
+            <div class="metodo-icon">🪪</div>
+            <div class="metodo-info">
+              <div class="metodo-nombre">Cuenta DNI</div>
+              <div class="metodo-desc" data-es="Banco Provincia de Buenos Aires" data-en="Banco Provincia de Buenos Aires">Banco Provincia de Buenos Aires</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="terminos-row">
+          <input type="checkbox" class="terminos-check" id="termCheck"/>
+          <label class="terminos-text" for="termCheck">
+            <span data-es="Leí y acepto los " data-en="I have read and accept the ">Leí y acepto los </span><a class="terminos-link" href="#" data-es="términos y condiciones" data-en="terms and conditions">términos y condiciones</a><span data-es=" y la " data-en=" and "> y la </span><a class="terminos-link" href="#" data-es="política de privacidad" data-en="privacy policy">política de privacidad</a>.
+          </label>
+        </div>
+      </div>
+
+      <div class="cta-sticky">
+        <div class="cta-card">
+          <div>
+            <div class="cta-total-label" data-es="Total a pagar" data-en="Total">Total a pagar</div>
+            <div class="cta-total-num">$1.600</div>
+          </div>
+          <button class="cta-btn" onclick="setStep(3)" data-es="Pagar →" data-en="Pay →">Pagar →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 3: CONFIRMACIÓN -->
+    <div id="mStep3" class="hidden">
+      <div class="confirm-body">
+        <div class="confirm-icon">✓</div>
+        <div>
+          <div class="confirm-title" data-es="¡Listo! Entradas confirmadas." data-en="Done! Tickets confirmed.">¡Listo! Entradas confirmadas.</div>
+        </div>
+        <p class="confirm-sub" data-es="Te enviamos las entradas a tu email. También las encontrás en esta pantalla." data-en="We sent your tickets to your email. You can also find them here.">Te enviamos las entradas a tu email. También las encontrás en esta pantalla.</p>
+
+        <div class="confirm-card">
+          <div class="confirm-card-row">
+            <span class="cc-label" data-es="Película" data-en="Film">Película</span>
+            <span class="cc-val">Star Wars: Mandalorian & Grogu</span>
+          </div>
+          <div class="confirm-card-row">
+            <span class="cc-label" data-es="Función" data-en="Showtime">Función</span>
+            <span class="cc-val">Lun 1 · 14:00 · Sala 3</span>
+          </div>
+          <div class="confirm-card-row">
+            <span class="cc-label" data-es="Formato" data-en="Format">Formato</span>
+            <span class="cc-val">2D · Español</span>
+          </div>
+          <div class="confirm-card-row">
+            <span class="cc-label" data-es="Asientos" data-en="Seats">Asientos</span>
+            <div class="confirm-asientos">
+              <span class="confirm-seat">B4</span>
+              <span class="confirm-seat">B5</span>
+            </div>
+          </div>
+          <div class="confirm-card-row">
+            <span class="cc-label" data-es="Código de compra" data-en="Order code">Código de compra</span>
+            <span class="cc-val" style="color:var(--amarillo)">#ALD-2024-8821</span>
+          </div>
+          <div class="confirm-total-row">
+            <span class="confirm-total-label" data-es="Total pagado" data-en="Total paid">Total pagado</span>
+            <span class="confirm-total-num">$1.600</span>
+          </div>
+        </div>
+
+        <div class="confirm-actions">
+          <button class="btn-primary" data-es="Descargar entradas" data-en="Download tickets">Descargar entradas</button>
+          <button class="btn-ghost" data-es="Volver a la cartelera" data-en="Back to movies">Volver a la cartelera</button>
+        </div>
+
+        <p class="confirm-nota" data-es="Presentá este código o las entradas descargadas en el cine." data-en="Show this code or downloaded tickets at the cinema.">Presentá este código o las entradas descargadas en el cine.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP -->
+  <div id="vd" class="desktop-frame hidden">
+    <div class="nav" style="padding:11px 20px">
+      <button class="back-btn" id="dBackBtn">‹ <span id="dBackLabel" data-es="Butacas" data-en="Seats">Butacas</span></button>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo-box">LOGO</div>
+        <div><div class="logo-text">CINES PASEO ALDREY</div><div class="logo-sub">Salas 1·2·3·4·5·6</div></div>
+      </div>
+      <div style="width:80px"></div>
+    </div>
+
+    <div class="stepper">
+      <div class="stepper-row" id="dStepper" style="max-width:400px;margin:0 auto"></div>
+    </div>
+
+    <!-- PASO 2 DESKTOP -->
+    <div id="dStep2" class="d-checkout-layout">
+      <div class="d-form-col">
+        <div class="form-section-title" style="margin-top:0" data-es="Datos personales" data-en="Personal details">Datos personales</div>
+        <div class="form-group">
+          <label class="form-label" data-es="Nombre y apellido" data-en="Full name">Nombre y apellido</label>
+          <input class="form-input" type="text" placeholder="Ej: Sofía Zapata" autocomplete="name"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" placeholder="sofizapata@email.com"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-es="Teléfono (opcional)" data-en="Phone (optional)">Teléfono (opcional)</label>
+            <input class="form-input" type="tel" placeholder="+54 9 223..."/>
+          </div>
+        </div>
+
+        <div class="form-section-title" data-es="Método de pago" data-en="Payment method">Método de pago</div>
+        <div class="metodos-grid">
+          <div class="metodo-card active" onclick="selMetodo(this)">
+            <div class="metodo-radio on"></div>
+            <div class="metodo-icon">💳</div>
+            <div class="metodo-info">
+              <div class="metodo-nombre" data-es="Tarjeta de crédito/débito" data-en="Credit / debit card">Tarjeta de crédito/débito</div>
+              <div class="metodo-desc">Visa, Mastercard, American Express</div>
+            </div>
+          </div>
+          <div class="metodo-card" onclick="selMetodo(this)">
+            <div class="metodo-radio"></div>
+            <div class="metodo-icon">🟦</div>
+            <div class="metodo-info">
+              <div class="metodo-nombre">Mercado Pago</div>
+              <div class="metodo-desc" data-es="QR, saldo o tarjeta guardada" data-en="QR, balance or saved card">QR, saldo o tarjeta guardada</div>
+            </div>
+            <span class="metodo-badge" data-es="Popular" data-en="Popular">Popular</span>
+          </div>
+          <div class="metodo-card" onclick="selMetodo(this)">
+            <div class="metodo-radio"></div>
+            <div class="metodo-icon">🪪</div>
+            <div class="metodo-info">
+              <div class="metodo-nombre">Cuenta DNI</div>
+              <div class="metodo-desc">Banco Provincia de Buenos Aires</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="terminos-row">
+          <input type="checkbox" class="terminos-check" id="termCheckD"/>
+          <label class="terminos-text" for="termCheckD">
+            <span data-es="Leí y acepto los " data-en="I have read and accept the ">Leí y acepto los </span><a class="terminos-link" href="#" data-es="términos y condiciones" data-en="terms and conditions">términos y condiciones</a><span data-es=" y la " data-en=" and "> y la </span><a class="terminos-link" href="#" data-es="política de privacidad" data-en="privacy policy">política de privacidad</a>.
+          </label>
+        </div>
+      </div>
+
+      <div class="d-summary-col">
+        <div class="d-sum-title" data-es="Resumen de compra" data-en="Order summary">Resumen de compra</div>
+        <div class="d-sum-card">
+          <div class="d-sum-row"><span class="d-sum-label" data-es="Película" data-en="Film">Película</span><span class="d-sum-val">Star Wars</span></div>
+          <div class="d-sum-row"><span class="d-sum-label" data-es="Función" data-en="Showtime">Función</span><span class="d-sum-val">Lun 1 · 14:00</span></div>
+          <div class="d-sum-row"><span class="d-sum-label" data-es="Sala" data-en="Screen">Sala</span><span class="d-sum-val">Sala 3 · 2D ESP</span></div>
+          <div class="d-sum-row"><span class="d-sum-label" data-es="Asientos" data-en="Seats">Asientos</span>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+              <span class="confirm-seat">B4</span><span class="confirm-seat">B5</span>
+            </div>
+          </div>
+          <div class="d-sum-row" style="border-bottom:none"><span class="d-sum-label" data-es="Entradas" data-en="Tickets">Entradas</span><span class="d-sum-val">2 × $800</span></div>
+          <div class="d-sum-total">
+            <span class="d-sum-total-label" data-es="Total" data-en="Total">Total</span>
+            <span class="d-sum-total-num">$1.600</span>
+          </div>
+        </div>
+        <button class="d-submit-btn" onclick="setStep(3)" data-es="Confirmar y pagar →" data-en="Confirm & pay →">Confirmar y pagar →</button>
+      </div>
+    </div>
+
+    <!-- PASO 3 DESKTOP -->
+    <div id="dStep3" class="hidden" style="padding:40px;display:flex;gap:28px;justify-content:center;flex-wrap:wrap">
+      <div style="max-width:420px;display:flex;flex-direction:column;gap:20px;align-items:center;text-align:center">
+        <div class="confirm-icon" style="width:72px;height:72px;font-size:32px">✓</div>
+        <div>
+          <div class="confirm-title" data-es="¡Listo! Entradas confirmadas." data-en="Done! Tickets confirmed.">¡Listo! Entradas confirmadas.</div>
+          <p class="confirm-sub" style="margin-top:8px" data-es="Te enviamos las entradas a tu email. También las encontrás acá." data-en="We sent your tickets to your email.">Te enviamos las entradas a tu email. También las encontrás acá.</p>
+        </div>
+        <div class="confirm-actions" style="max-width:320px">
+          <button class="btn-primary" data-es="Descargar entradas" data-en="Download tickets">Descargar entradas</button>
+          <button class="btn-ghost" data-es="Volver a la cartelera" data-en="Back to movies">Volver a la cartelera</button>
+        </div>
+      </div>
+      <div class="confirm-card" style="max-width:320px;align-self:flex-start">
+        <div class="confirm-card-row"><span class="cc-label" data-es="Película" data-en="Film">Película</span><span class="cc-val">Star Wars: Mandalorian & Grogu</span></div>
+        <div class="confirm-card-row"><span class="cc-label" data-es="Función" data-en="Showtime">Función</span><span class="cc-val">Lun 1 · 14:00 · Sala 3</span></div>
+        <div class="confirm-card-row"><span class="cc-label" data-es="Formato" data-en="Format">Formato</span><span class="cc-val">2D · Español</span></div>
+        <div class="confirm-card-row">
+          <span class="cc-label" data-es="Asientos" data-en="Seats">Asientos</span>
+          <div class="confirm-asientos"><span class="confirm-seat">B4</span><span class="confirm-seat">B5</span></div>
+        </div>
+        <div class="confirm-card-row"><span class="cc-label" data-es="Código de compra" data-en="Order code">Código de compra</span><span class="cc-val" style="color:var(--amarillo)">#ALD-2024-8821</span></div>
+        <div class="confirm-total-row">
+          <span class="confirm-total-label" data-es="Total pagado" data-en="Total paid">Total pagado</span>
+          <span class="confirm-total-num">$1.600</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var dk=true,es=true,currentStep=2;
+
+function buildStepper(containerId, step){
+  var c = document.getElementById(containerId);
+  var steps = [
+    {n:1, es:'Butacas', en:'Seats'},
+    {n:2, es:'Información', en:'Details'},
+    {n:3, es:'Pago', en:'Payment'}
+  ];
+  c.innerHTML = '';
+  steps.forEach(function(s, i){
+    var div = document.createElement('div');
+    div.className = 'step';
+    var circle = document.createElement('div');
+    if(step > s.n) circle.className = 'step-circle done-check';
+    else if(step === s.n) circle.className = 'step-circle active';
+    else circle.className = 'step-circle';
+    circle.textContent = step > s.n ? '✓' : s.n;
+    var label = document.createElement('span');
+    label.className = step === s.n ? 'step-label active' : 'step-label';
+    label.textContent = es ? s.es : s.en;
+    label.setAttribute('data-es', s.es);
+    label.setAttribute('data-en', s.en);
+    div.appendChild(circle);
+    div.appendChild(label);
+    c.appendChild(div);
+    if(i < steps.length - 1){
+      var line = document.createElement('div');
+      line.className = step > s.n ? 'step-line done' : 'step-line';
+      c.appendChild(line);
+    }
+  });
+}
+
+function setStep(n){
+  currentStep = n;
+  buildStepper('mStepper', n);
+  buildStepper('dStepper', n);
+
+  // Mobile
+  document.getElementById('mStep2').classList.toggle('hidden', n !== 2);
+  document.getElementById('mStep3').classList.toggle('hidden', n !== 3);
+
+  // Desktop
+  document.getElementById('dStep2').classList.toggle('hidden', n !== 2);
+  document.getElementById('dStep3').classList.toggle('hidden', n !== 3);
+
+  // Back label
+  var backEs = n === 2 ? 'Butacas' : 'Información';
+  var backEn = n === 2 ? 'Seats' : 'Details';
+  document.getElementById('mBackLabel').textContent = es ? backEs : backEn;
+  document.getElementById('mBackLabel').setAttribute('data-es', backEs);
+  document.getElementById('mBackLabel').setAttribute('data-en', backEn);
+  document.getElementById('dBackLabel').textContent = es ? backEs : backEn;
+
+  // Step buttons
+  document.querySelectorAll('.step-btn').forEach(function(b,i){
+    b.classList.toggle('active', i === (n-2));
+  });
+}
+
+function selMetodo(el){
+  el.closest('.metodos-grid').querySelectorAll('.metodo-card').forEach(function(c){
+    c.classList.remove('active');
+    c.querySelector('.metodo-radio').classList.remove('on');
+  });
+  el.classList.add('active');
+  el.querySelector('.metodo-radio').classList.add('on');
+}
+
+function tt(){
+  dk=!dk;
+  document.body.className=dk?'':'light';
+  document.getElementById('tl').textContent=dk?(es?'Modo claro':'Light mode'):(es?'Modo oscuro':'Dark mode');
+  document.getElementById('tbtn').className=dk?'cbtn':'cbtn on';
+}
+function tl(){
+  es=!es;
+  document.getElementById('ll').textContent=es?'Cambiar a EN':'Switch to ES';
+  document.querySelectorAll('[data-es]').forEach(function(el){el.textContent=es?el.dataset.es:el.dataset.en;});
+  document.getElementById('tl').textContent=dk?(es?'Modo claro':'Light mode'):(es?'Modo oscuro':'Dark mode');
+  buildStepper('mStepper', currentStep);
+  buildStepper('dStepper', currentStep);
+}
+function sv(v){
+  var m=document.getElementById('vm'),d=document.getElementById('vd');
+  document.querySelectorAll('.vbtn').forEach(function(b,i){b.classList.toggle('active',['m','d','a'][i]===v);});
+  if(v==='m'){m.classList.remove('hidden');d.classList.add('hidden');}
+  else if(v==='d'){m.classList.add('hidden');d.classList.remove('hidden');}
+  else{m.classList.remove('hidden');d.classList.remove('hidden');}
+}
+
+setStep(2);
+</script>
+</body>
+</html>
